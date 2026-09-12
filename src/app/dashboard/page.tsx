@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Shield, Activity, AlertTriangle, ArrowUpRight, Search, CheckCircle, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
@@ -13,6 +13,21 @@ const initialTransactions = [
 
 export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [backendStatus, setBackendStatus] = useState('Checking...');
+  useEffect(() => {
+  fetch('http://127.0.0.1:5000/api/health')
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status === 'ok') {
+        setBackendStatus('Online');
+      } else {
+        setBackendStatus('Offline');
+      }
+    })
+    .catch(() => {
+      setBackendStatus('Offline');
+    });
+}, []);
   const [txs, setTxs] = useState(initialTransactions);
 
   const filteredTxs = txs.filter(t => t.id.toLowerCase().includes(searchTerm.toLowerCase()) || t.route.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -32,7 +47,7 @@ export default function DashboardPage() {
         <div className="flex items-center space-x-3">
           <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Node Active</span>
+            <span>Backend: {backendStatus}</span>
           </span>
         </div>
       </header>
