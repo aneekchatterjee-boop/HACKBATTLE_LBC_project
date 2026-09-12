@@ -14,6 +14,8 @@ const initialTransactions = [
 export default function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [backendStatus, setBackendStatus] = useState('Checking...');
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [showAnalysis, setShowAnalysis] = useState(false);
   useEffect(() => {
   fetch('http://127.0.0.1:5000/api/health')
     .then((response) => response.json())
@@ -24,16 +26,79 @@ export default function DashboardPage() {
         setBackendStatus('Offline');
       }
     })
+
     .catch(() => {
       setBackendStatus('Offline');
     });
 }, []);
+const analyzeTransaction = async () => {
+  try {
+    const response = await fetch(
+      'http://127.0.0.1:5000/api/transactions/analyze',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: 120000,
+          velocity: 10,
+          account_age: 15,
+          recipients: 8,
+        }),
+      }
+    );
+
+    const data = await response.json();
+    setAnalysisResult(data);
+  } catch (error) {
+    console.error('Transaction analysis failed:', error);
+  }
+};
   const [txs, setTxs] = useState(initialTransactions);
 
   const filteredTxs = txs.filter(t => t.id.toLowerCase().includes(searchTerm.toLowerCase()) || t.route.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
+      {showAnalysis && analysisResult && (
+  <div className="mb-6 rounded-xl border border-white/10 bg-white/5 p-5">
+    <div className="mb-3 text-sm text-gray-400">
+      Latest Risk Analysis
+    </div>
+
+    <div className="flex items-center gap-6">
+      <div>
+        <div className="text-3xl font-bold">
+          {analysisResult.risk_score}/100
+        </div>
+        <div className="text-sm text-gray-400">Risk Score</div>
+      </div>
+
+      <div>
+        <div className="text-xl font-semibold">
+          {analysisResult.decision}
+        </div>
+        <div className="text-sm text-gray-400">Decision</div>
+      </div>
+    </div>
+
+    <div className="mt-4">
+      <div className="mb-2 text-sm text-gray-400">Risk Signals</div>
+
+      <div className="flex flex-wrap gap-2">
+        {analysisResult.signals.map((signal: string) => (
+          <span
+            key={signal}
+            className="rounded-full border border-white/10 px-3 py-1 text-xs"
+          >
+            {signal}
+          </span>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
       {/* Top Bar */}
       <header className="border-b border-zinc-800 bg-zinc-950/80 px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-3">
@@ -48,6 +113,15 @@ export default function DashboardPage() {
           <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Backend: {backendStatus}</span>
+            <button
+  onClick={async () => {
+  await analyzeTransaction();
+  setShowAnalysis(true);
+}}
+  className="ml-4 rounded-lg border border-white/20 px-3 py-1 text-sm"
+>
+  Test Risk
+</button>
           </span>
         </div>
       </header>
