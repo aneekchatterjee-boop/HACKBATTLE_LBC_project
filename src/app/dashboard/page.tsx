@@ -30,6 +30,7 @@ export default function DashboardPage() {
     .catch(() => {
       setBackendStatus('Offline');
     });
+    fetchTransactions();
 }, []);
 const analyzeTransaction = async () => {
   try {
@@ -55,7 +56,33 @@ const analyzeTransaction = async () => {
     console.error('Transaction analysis failed:', error);
   }
 };
-  const [txs, setTxs] = useState(initialTransactions);
+  const [txs, setTxs] = useState<any[]>([]);
+
+  const fetchTransactions = async () => {
+  try {
+    const response = await fetch(
+      'http://127.0.0.1:5000/api/transactions'
+    );
+
+    const data = await response.json();
+    setTxs(
+  data.map((transaction: any) => ({
+    id: `TX-${transaction.id}`,
+    amount: `₹${transaction.amount.toLocaleString('en-IN')}`,
+    route: 'Analyzed Transaction',
+    score: transaction.risk_score,
+    status: transaction.decision === 'BLOCK'
+      ? 'BLOCKED'
+      : transaction.decision === 'HOLD'
+        ? 'HELD'
+        : 'CLEARED',
+    time: transaction.created_at,
+  }))
+);
+  } catch (error) {
+    console.error('Failed to fetch transactions:', error);
+  }
+};
 
   const filteredTxs = txs.filter(t => t.id.toLowerCase().includes(searchTerm.toLowerCase()) || t.route.toLowerCase().includes(searchTerm.toLowerCase()));
 
