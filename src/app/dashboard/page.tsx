@@ -69,7 +69,7 @@ const analyzeTransaction = async () => {
   data.map((transaction: any) => ({
     id: `TX-${transaction.id}`,
     amount: `₹${transaction.amount.toLocaleString('en-IN')}`,
-    route: 'Analyzed Transaction',
+    route: `${transaction.sender_bank} → ${transaction.receiver_bank}`,
     score: transaction.risk_score,
     status: transaction.decision === 'BLOCK'
       ? 'BLOCKED'

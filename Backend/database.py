@@ -15,13 +15,22 @@ def initialize_database():
     connection.execute("""
         CREATE TABLE IF NOT EXISTS transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            sender_bank TEXT NOT NULL,
+            sender_account TEXT NOT NULL,
+
+            receiver_bank TEXT NOT NULL,
+            receiver_account TEXT NOT NULL,
+
             amount REAL NOT NULL,
             velocity INTEGER DEFAULT 0,
             account_age INTEGER DEFAULT 365,
             recipients INTEGER DEFAULT 1,
+
             risk_score INTEGER NOT NULL,
             decision TEXT NOT NULL,
             signals TEXT NOT NULL,
+
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
